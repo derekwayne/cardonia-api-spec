@@ -1,0 +1,505 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Cardonia API
+  description: Credit card rewards optimization API
+  contact:
+    name: Derek Wayne
+    email: derekwayne4@gmail.com
+tags:
+  - name: Users
+    description: Operations about application users
+  - name: Credit Card
+    description: Methods on credit cards
+paths:
+  /user:
+    post:
+      tags:
+      - Users
+      summary: Create user
+      description: This can only be done by the logged in user.
+      operationId: create_user
+      requestBody:
+        content:
+          application-json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        201:
+          description: user successfully created
+        400:
+          description: invalid user specification
+        401:
+          description: unauthorized
+        403:
+          description: forbidden
+        500:
+          description: internal server error
+      security:
+      - cardonia_auth:
+        - write:users
+        - read:users
+  /user/{username}:
+    get:
+      tags:
+      - Users
+      summary: Get user by user name
+      description: ""
+      operationId: get_user_by_name
+      parameters:
+      - name: username
+        in: path
+        description: The name that needs to be fetched. Use user1 for testing.
+        required: true
+        schema:
+          $ref: '#/components/parameters/UsernameParams'
+      responses:
+        200:
+          description: successful operation
+          content:
+            application-json:
+              schema:
+                $ref: '#/components/schemas/User'
+        default:
+          description: default error
+          content:
+            application-json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+        400:
+          description: Invalid username supplied
+          content:
+            application-json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+        404:
+          description: User not found
+          content:
+            application-json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+      security:
+      - cardonia_auth:
+        - read:users
+    put:
+      tags:
+      - Users
+      summary: Updated user
+      description: This can only be done by the logged in user.
+      operationId: update_user
+      parameters:
+      - name: username
+        in: path
+        description: The name that needs to be fetched. Use user1 for testing.
+        required: true
+        content:
+          application-json:
+            schema:
+              $ref: '#/components/parameters/UsernameParams'
+      requestBody:
+        content:
+          application-json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        200:
+          description: successful operation
+        default:
+          description: default error
+          content:
+            application-json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+        400:
+          description: Invalid username supplied
+          content:
+            application-json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+        404:
+          description: User not found
+          content:
+            application-json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+      security:
+      - cardonia_auth:
+        - write:users
+    delete:
+      tags:
+        - Users
+      summary: Delete a user account
+      description: Permanantly delete user account by username
+      operationId: delete_user
+      parameters:
+      - name: username
+        in: path
+        description: The username of the account to be deleted. Use user1 for testing.
+        required: true
+        content:
+          application-json:
+            schema:
+              $ref: '#/components/parameters/UsernameParams'
+      responses:
+        200:
+          description: user successfully deleted
+        default:
+          description: default error
+          content:
+            application-json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+        400:
+          description: Invalid username supplied
+          content:
+            application-json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+        404:
+          description: User not found
+          content:
+            application-json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+      security:
+      - cardonia_auth:
+        - write:users
+  /card:
+    post:
+      tags:
+      - Credit Card
+      summary: Create a credit card
+      description: Add a new credit card to the system
+      operationId: create_card
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreditCard'
+      responses:
+        201:
+          description: card successfully created
+        400:
+          description: invalid card specification
+        401:
+          description: unauthorized
+        403:
+          description: forbidden
+        500:
+          description: internal server error
+      security:
+      - cardonia_auth:
+        - write:cards
+    get:
+      tags:
+      - Credit Card
+      summary: Get a list of all accessible credit cards
+      description: Get all credit cards
+      operationId: get_cards
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditCards'
+        default:
+          description: default error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+      security:
+      - cardonia_auth:
+        - read:cards
+  /card/optimize:
+    post:
+      tags:
+        - Credit Card
+        - Optimization
+      summary: Perform rewards optimization over credit cards
+      description: Optimization of rewards
+      operationId: optimize_cards
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardNames'
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OptimalCards'
+  /card/{cardname}:
+    get:
+      tags:
+        - Credit Card
+      summary: Get a credit card by cardname
+      description: Get data on a credit card
+      operationId: get_card
+      parameters:
+      - name: cardname
+        in: path
+        description: The card name of the credit card to get. Use testcard for testing
+        required: true
+        content:
+          application-json:
+            schema:
+              $ref: '#/components/parameters/CardnameParams'
+      responses:
+        200:
+          description: successful operation
+          content:
+            application-json:
+              schema:
+                $ref: '#/components/schemas/CreditCard'
+        default:
+          description: default error
+          content:
+            application-json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+        400:
+          description: Invalid cardname supplied
+          content:
+            application-json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+        404:
+          description: Card not found
+          content:
+            application-json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+      security:
+      - cardonia_auth:
+        - read:cards
+    put:
+      tags:
+        - Credit Card
+      summary: Update a credit card by cardname
+      description: Update data and features on a credit card
+      operationId: update_card
+      parameters:
+      - name: cardname
+        in: path
+        description: The card name of the credit card to be updated. Use testcard for testing
+        required: true
+        content:
+          application-json:
+            schema:
+              $ref: '#/components/parameters/CardnameParams'
+      requestBody:
+        content:
+          application-json:
+            schema:
+              $ref: '#/components/schemas/CreditCard'
+      responses:
+        200:
+          description: card successfully updated
+        default:
+          description: default error
+          content:
+            application-json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+        400:
+          description: Invalid cardname supplied
+          content:
+            application-json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+        404:
+          description: Card not found
+          content:
+            application-json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+      security:
+      - cardonia_auth:
+        - write:cards
+    delete:
+      tags:
+        - Credit Card
+      summary: Delete a card by cardname
+      description: Permanantly delete card by cardname
+      operationId: delete_card
+      parameters:
+      - name: cardname
+        in: path
+        description: The cardname of the card to be deleted. Use testcard for testing.
+        required: true
+        content:
+          application-json:
+            schema:
+              $ref: '#/components/parameters/CardnameParams'
+      responses:
+        200:
+          description: card successfully deleted
+        default:
+          description: default error
+          content:
+            application-json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+        400:
+          description: Invalid cardname supplied
+          content:
+            application-json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+        404:
+          description: Card not found
+          content:
+            application-json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+      security:
+      - cardonia_auth:
+        - write:cards
+security:
+    - cardonia_auth:
+        - write:cards
+        - read:cards
+components:
+  schemas:
+    CreditCard:
+      description: A credit card that may be used by a cardholder to earn rewards.
+      type: object
+      required:
+        - name
+        - rewards
+      properties:
+        name:
+          type: string
+          example: "PcFinancial Mastercard"
+        balance:
+          type: number
+          default: 0
+        purchaseInterest:
+          type: number
+          example: 0.1999
+        limit:
+          type: number
+          example: 7500
+        rewards:
+          $ref: '#/components/schemas/Rewards'
+    CreditCards:
+      description: A list of all the credit cards in database
+      type: array
+      items:
+        $ref: '#/components/schemas/CreditCard'
+    User:
+      description: A user who owns one or many credit cards.
+      type: object
+      required:
+          - username
+          - email
+          - password
+      properties:
+        username:
+          type: string
+          minLength: 4
+          maxLength: 12
+          example: myusername
+        email:
+          type: string
+          format: email
+          example: username@mail.com
+        password:
+          type: string
+          format: password
+          example: "hUh3jks.?8djf$kl$i*%"
+    Rewards:
+      description: Credit card reward categories and their reward rates
+      type: object
+      required:
+        - general
+      properties:
+        general:
+          type: number
+          description: default rewards rate for uncategorized purchases
+          example: 0.015
+      additionalProperties:
+        type: number
+        example: 0.025
+      maxProperties: 10
+    CardNames:
+      description: List of credit card names
+      type: array
+      items:
+        type: string
+        example: 'AmexCash'
+    OptimalCards:
+      description: Results of the credit card optimizer
+      type: object
+      properties:
+        cards:
+          $ref: '#/components/schemas/CardNames'
+        rewards:
+          $ref: '#/components/schemas/Rewards'
+    ErrorModel:
+        type: object
+        required:
+        - message
+        - code
+        properties:
+          message:
+            type: string
+          code:
+            type: integer
+            minimum: 100
+            maximum: 600
+    ExtendedErrorModel:
+      allOf:
+      - $ref: '#/components/schemas/ErrorModel'
+      - type: object
+        required:
+        - detail
+        properties:
+          detail:
+            type: string
+  parameters:
+    UsernameParams:
+      name: username
+      in: path
+      description: username of user to use
+      required: true
+      schema:
+        type: array
+        items:
+          type: string
+    CardnameParams:
+      name: cardname
+      in: path
+      description: cardname of desired card
+      required: true
+      schema:
+        type: array
+        items:
+          type: string
+  responses:  # template for making more complex error associations
+    NotFound:
+      description: Entity not found.
+    IllegalInput:
+      description: Illegal input for operation.
+    GeneralError:
+      description: General Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorModel'
+  securitySchemes:
+    cardonia_auth:
+      type: oauth2
+      flows: 
+        authorizationCode:
+          authorizationUrl: 'https://dev-52301683.okta.com/oauth2/default/v1/authorize'
+          tokenUrl: 'https://dev-52301683.okta.com/oauth2/default/v1/token'
+          scopes:
+            cardonia.users.write: modify users
+            cardonia.users.read: read users
+            cardonia.cards.write: modify cards in your account
+            cardonia.cards.read: read your cards
