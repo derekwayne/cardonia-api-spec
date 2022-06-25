@@ -11,6 +11,14 @@ tags:
     description: Operations about application users
   - name: Credit Card
     description: Methods on credit cards
+servers:
+  - url: http://localhost:{port} # /{basePath}
+    description: Local testing server
+    variables:
+      port:
+        default: '5000'
+      # basePath:
+      #   default: v1
 paths:
   /user:
     post:
@@ -164,6 +172,58 @@ paths:
       security:
       - cardonia_auth:
         - write:users
+  /user/{userId}/spending:
+    get:
+      tags:
+        - Users
+      summary: Get a user's spending
+      description: Get the monthly spending allocation data for the user
+      operationId: get_spending
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Spending'
+              example:
+                id: 1
+                userId: 1
+                spending:
+                  general: 500
+                  groceries: 500
+                  restaurants: 200
+                  health: 80
+                  gas: 70
+                  travel: 100
+                  preauthPayments: 200
+  /user/{userId}/card/{cardId}:
+    post:
+      tags:
+        - Users
+      summary: Add a card to a user's profile
+      description: Adds a card and any user specific data about the particular card to the user's list of selected cards
+      operationId: add_card
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: cardId
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Card successfully added
   /card:
     post:
       tags:
@@ -176,6 +236,20 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CreditCard'
+            example:
+              name: PcFinancial Mastercard
+              balance: 0
+              purchaseInterest: 0.1999
+              limit: 7500
+              rewards:
+                general: 0.015
+                groceries: 0.035
+                restaurants: 0.015
+                health: 0.035
+                gas: 0.025
+                travel: 0.03
+                preauthPayments: 0.015
+              
       responses:
         201:
           description: card successfully created
@@ -212,14 +286,19 @@ paths:
       security:
       - cardonia_auth:
         - read:cards
-  /card/optimize:
+  /user/{userId}/optimize:
     post:
       tags:
-        - Credit Card
         - Optimization
-      summary: Perform rewards optimization over credit cards
-      description: Optimization of rewards
+      summary: Optimization of rewards
+      description: Perform rewards optimization over a user's selected credit cards
       operationId: optimize_cards
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: integer
       requestBody:
         content:
           application/json:
@@ -395,15 +474,9 @@ components:
       description: A user who owns one or many credit cards.
       type: object
       required:
-          - username
           - email
           - password
       properties:
-        username:
-          type: string
-          minLength: 4
-          maxLength: 12
-          example: myusername
         email:
           type: string
           format: email
@@ -413,7 +486,7 @@ components:
           format: password
           example: "hUh3jks.?8djf$kl$i*%"
     Rewards:
-      description: Credit card reward categories and their reward rates
+      description: Credit card spending/reward categories and their values
       type: object
       required:
         - general
@@ -421,11 +494,18 @@ components:
         general:
           type: number
           description: default rewards rate for uncategorized purchases
-          example: 0.015
-      additionalProperties:
-        type: number
-        example: 0.025
-      maxProperties: 10
+        groceries:
+          type: number
+        restaurants:
+          type: number
+        health:
+          type: number
+        gas:
+          type: number
+        travel:
+          type: number
+        preauthPayments:
+          type: number
     CardNames:
       description: List of credit card names
       type: array
@@ -439,6 +519,16 @@ components:
         cards:
           $ref: '#/components/schemas/CardNames'
         rewards:
+          $ref: '#/components/schemas/Rewards'
+    Spending:
+      description: A user's spending allocations
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        spending:
           $ref: '#/components/schemas/Rewards'
     ErrorModel:
         type: object
